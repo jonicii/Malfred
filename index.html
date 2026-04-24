@@ -428,7 +428,9 @@ Respond in JSON format with these exact keys: interpretation, missing, whatYouBu
       }
       
       const data = await response.json();
-      const content = data.choices[0].message.content;
+      let content = data.choices[0].message.content;
+      // Strip markdown code fences if present
+      content = content.replace(/^```json\s*/, '').replace(/```$/, '').trim();
       return JSON.parse(content);
     }
     
