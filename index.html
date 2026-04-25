@@ -438,10 +438,18 @@ Respond in JSON format with these exact keys: interpretation, missing, whatYouBu
       const responseEl = document.getElementById('malfredResponse');
       responseEl.querySelector('.malfred-text').className = 'malfred-text';
       
+      // Normalize missing to array (LLM sometimes returns string or other types)
+      let missing = [];
+      if (Array.isArray(result.missing)) {
+        missing = result.missing;
+      } else if (typeof result.missing === 'string' && result.missing.trim()) {
+        missing = [result.missing];
+      }
+      
       // Show Malfred's interpretation and what he built
       let responseText = result.whatYouBuilt || 'No build output';
-      if (result.missing && result.missing.length > 0) {
-        responseText += '\n\n⚠️ MISSING FROM YOUR SPEC:\n' + result.missing.map(m => '• ' + m).join('\n');
+      if (missing.length > 0) {
+        responseText += '\n\n⚠️ MISSING FROM YOUR SPEC:\n' + missing.map(m => '• ' + m).join('\n');
       }
       responseEl.querySelector('.malfred-text').textContent = responseText;
       
@@ -455,7 +463,7 @@ Respond in JSON format with these exact keys: interpretation, missing, whatYouBu
       // Show analysis
       document.getElementById('analysis').classList.add('show');
       document.getElementById('specAnalysis').textContent = spec;
-      document.getElementById('malfredAnalysis').textContent = result.interpretation + (result.missing ? '\n\nMissing: ' + result.missing.join(', ') : '');
+      document.getElementById('malfredAnalysis').textContent = result.interpretation + (missing.length > 0 ? '\n\nMissing: ' + missing.join(', ') : '');
       
       // Score
       const statusEl = document.getElementById('statusBox');
@@ -468,7 +476,7 @@ Respond in JSON format with these exact keys: interpretation, missing, whatYouBu
         scoreEl.textContent = '$' + score;
       } else {
         statusEl.className = 'status fail';
-        statusEl.textContent = '✗ FAILED. ' + (result.missing ? 'Missing: ' + result.missing.join(', ') : 'Client rejected the work.');
+        statusEl.textContent = '✗ FAILED. ' + (missing.length > 0 ? 'Missing: ' + missing.join(', ') : 'Client rejected the work.');
       }
     }
     
